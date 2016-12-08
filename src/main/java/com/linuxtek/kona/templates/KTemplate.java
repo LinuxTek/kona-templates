@@ -23,6 +23,7 @@ import org.apache.velocity.runtime.resource.loader.FileResourceLoader;
 //import org.apache.velocity.tools.ToolManager;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Entities;
 
 import com.linuxtek.kona.premailer.KPremailer;
 import com.linuxtek.kona.util.KStringUtil;
@@ -151,6 +152,18 @@ public class KTemplate {
     	return t.toString();
     }
     
+    
+    public static String evalStringTemplate(String stringTemplate, Map<String,Object> params) throws KTemplateException {
+    	KTemplate t = new KTemplate(null, params, null, null);
+        t.setStringTemplate(stringTemplate);
+    	return t.toString();
+    }
+    
+    public static String evalStringTemplate(String stringTemplate, Map<String,Object> params, boolean logEnabled) throws KTemplateException {
+    	KTemplate t = new KTemplate(null, params, null, null, logEnabled);
+        t.setStringTemplate(stringTemplate);
+    	return t.toString();
+    }
     
     public void setInlineCss(boolean inlineCss) {
         this.inlineCss = inlineCss;
@@ -341,10 +354,37 @@ public class KTemplate {
 		return (s);
 	}
     
+    /**
+     * 
+     * Use ASCII charset to produce hex entities.
+     * 
+     * User UTF-8 to create named entities.
+     * 
+     * @param charset
+     * @return
+     */
+	public String toHtml(String charset) {
+        return toHtml(null, charset);
+	}
+    
 	public String toHtml() {
+        return toHtml(null, null);
+	}
+    
+	public String toHtml(Entities.EscapeMode escapeMode, String charset) {
+        if (escapeMode == null) {
+        	escapeMode = Entities.EscapeMode.base;
+        }
+        
+        if (charset == null) {
+        	charset = "UTF-8";
+        }
+        
         String html = toString();
         if (html != null) {
         	Document doc = Jsoup.parse(html);
+        	doc.outputSettings().escapeMode(escapeMode);
+            doc.outputSettings().charset(charset);
 	    	doc.outputSettings().prettyPrint(true);
             html = doc.toString();
         }
