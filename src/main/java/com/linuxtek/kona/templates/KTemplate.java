@@ -24,6 +24,7 @@ import org.apache.velocity.runtime.resource.loader.FileResourceLoader;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Entities;
+import org.jsoup.parser.Parser;
 
 import com.linuxtek.kona.premailer.KPremailer;
 import com.linuxtek.kona.util.KStringUtil;
@@ -364,14 +365,14 @@ public class KTemplate {
      * @return
      */
 	public String toHtml(String charset) {
-        return toHtml(null, charset);
+        return toHtml(null, charset, false);
 	}
     
 	public String toHtml() {
-        return toHtml(null, null);
+        return toHtml(null, null, false);
 	}
     
-	public String toHtml(Entities.EscapeMode escapeMode, String charset) {
+	public String toHtml(Entities.EscapeMode escapeMode, String charset, boolean parseXML) {
         if (escapeMode == null) {
         	escapeMode = Entities.EscapeMode.base;
         }
@@ -382,7 +383,14 @@ public class KTemplate {
         
         String html = toString();
         if (html != null) {
-        	Document doc = Jsoup.parse(html);
+        	Document doc = null;
+
+        	if (parseXML) {
+        	    doc = Jsoup.parse(html, "", Parser.xmlParser());
+        	} else {
+        	    doc = Jsoup.parse(html);
+        	}
+
         	doc.outputSettings().escapeMode(escapeMode);
             doc.outputSettings().charset(charset);
 	    	doc.outputSettings().prettyPrint(true);
